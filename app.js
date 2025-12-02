@@ -205,24 +205,82 @@ async function handleRedirectFile(file) {
     const oldIndex = colIndex('old');
     const destIndex = colIndex('destination');
     const typeIndex = colIndex('redirect');
+    const indexableIndex = colIndex('indexable');
+    const canonicalIndex = colIndex('canonical');
 
     if (oldIndex === -1 || typeIndex === -1) {
       throw new Error('CSV must include Old Page URL and Redirect Type columns');
     }
 
-    redirectRows = body.map((row) => ({
+    const parsedRows = body.map((row) => ({
       old: row[oldIndex] || '',
       destination: ensureLeadingSlash(row[destIndex] || ''),
       type: row[typeIndex] || '301',
+      indexableState: indexableIndex !== -1 ? row[indexableIndex] || '' : '',
+      canonicalUrl: canonicalIndex !== -1 ? row[canonicalIndex] || '' : '',
     }));
+
+    const { filteredRows, removed } = processRedirectRows(parsedRows);
+    redirectRows = filteredRows;
 
     renderRedirectTable();
     redirectResults.hidden = false;
-    redirectStatus.textContent = `Loaded ${redirectRows.length} redirects`;
+    redirectStatus.textContent = buildRedirectStatusMessage(filteredRows.length, removed);
   } catch (error) {
     redirectStatus.textContent = 'Could not read CSV';
     console.error(error);
   }
+}
+
+function processRedirectRows(rows) {
+  const removed = {
+    duplicates: [],
+    canonicalized: [],
+  };
+
+  const seen = new Set();
+  const result = [];
+
+  for (const row of rows) {
+    const key = `${row.old}|${row.destination}|${row.type}`;
+    if (seen.has(key)) {
+      removed.duplicates.push(row);
+      continue;
+    }
+    seen.add(key);
+
+    const indexableText = (row.indexableState || '').toLowerCase();
+    const canonicalUrl = (row.canonicalUrl || '').trim();
+    const isCanonicalState = indexableText.includes('canonical');
+    const isNonIndexable = indexableText.includes('non-indexable') || indexableText.includes('noindex');
+    if (isCanonicalState || isNonIndexable || canonicalUrl) {
+      removed.canonicalized.push(row);
+      continue;
+    }
+
+    result.push(row);
+  }
+
+  return { filteredRows: result, removed };
+}
+
+function buildRedirectStatusMessage(remainingCount, removed) {
+  const parts = [`Loaded ${remainingCount} redirects`];
+  const removalDetails = [];
+
+  if (removed.duplicates.length) {
+    removalDetails.push(`${removed.duplicates.length} duplicate${removed.duplicates.length === 1 ? '' : 's'}`);
+  }
+
+  if (removed.canonicalized.length) {
+    removalDetails.push(`${removed.canonicalized.length} canonical/non-indexable`);
+  }
+
+  if (removalDetails.length) {
+    parts.push(`(removed ${removalDetails.join(', ')})`);
+  }
+
+  return parts.join(' ');
 }
 
 function ensureLeadingSlash(value) {
