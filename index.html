@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sitemap to Redirect CSV | Duda & Cloudflare Pages</title>
+  <meta name="description" content="Upload a Duda sitemap.xml, collect internal slugs, and rebuild redirect CSVs with new destination URLs—all in your browser for Cloudflare Pages." />
+  <meta property="og:title" content="Sitemap to Redirect CSV" />
+  <meta property="og:description" content="Parse sitemap.xml files, download a slug CSV, and remap redirect sheets without leaving your browser." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="container">
+      <p class="eyebrow">Cloudflare Pages ready</p>
+      <h1>Turn Duda sitemaps into redirect-ready CSVs</h1>
+      <p class="lede">Upload a sitemap.xml, capture every internal slug, and remap your redirect sheets without leaving the browser.</p>
+      <div class="actions">
+        <a class="button primary" href="#sitemap-section">Start with sitemap</a>
+        <a class="button ghost" href="#redirect-section">Remap redirects</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="sitemap-section" class="card">
+      <div class="card-head">
+        <div>
+          <p class="eyebrow">Step 1</p>
+          <h2>Upload sitemap.xml</h2>
+          <p class="muted">We parse the sitemap client-side, extract internal URLs, and keep only the path slugs.</p>
+        </div>
+        <div class="badge" id="sitemap-status">Waiting for upload</div>
+      </div>
+      <div class="dropzone" id="sitemap-dropzone">
+        <div>
+          <p class="muted">Drop your <strong>sitemap.xml</strong> here or</p>
+          <label class="button" for="sitemap-input">Choose file</label>
+          <input type="file" id="sitemap-input" accept=".xml,text/xml" hidden />
+        </div>
+      </div>
+      <div class="results" id="sitemap-results" hidden>
+        <div class="result-row">
+          <p><strong>Total slugs:</strong> <span id="slug-count">0</span></p>
+          <div class="spacer"></div>
+          <button class="button ghost" id="download-slugs">Download slug CSV</button>
+        </div>
+        <div class="pill-list" id="slug-preview"></div>
+      </div>
+    </section>
+
+    <section id="redirect-section" class="card">
+      <div class="card-head">
+        <div>
+          <p class="eyebrow">Step 2</p>
+          <h2>Upload redirect CSV</h2>
+          <p class="muted">Select destination slugs from the sitemap list, then export a trimmed CSV with only the columns you need.</p>
+        </div>
+        <div class="badge" id="redirect-status">Waiting for sitemap</div>
+      </div>
+      <div class="dropzone" id="redirect-dropzone">
+        <div>
+          <p class="muted">Drop your redirect CSV here or</p>
+          <label class="button" for="redirect-input">Choose file</label>
+          <input type="file" id="redirect-input" accept=".csv,text/csv" hidden />
+        </div>
+      </div>
+      <div class="results" id="redirect-results" hidden>
+        <div class="result-row">
+          <div class="field">
+            <label for="bulk-destination" class="muted">Set destination for all rows</label>
+            <input list="slug-options" id="bulk-destination" placeholder="Search slugs" />
+            <datalist id="slug-options"></datalist>
+          </div>
+          <div class="spacer"></div>
+          <button class="button ghost" id="apply-bulk">Apply to all</button>
+          <button class="button primary" id="download-redirects">Download formatted CSV</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Old Page URL</th>
+                <th>Destination Page URL</th>
+                <th>Redirect Type</th>
+              </tr>
+            </thead>
+            <tbody id="redirect-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container footer">
+    <p class="muted">Built for fast, local processing—no uploads leave your browser.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
